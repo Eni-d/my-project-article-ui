@@ -1,16 +1,20 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import HomePage from "./components/HomePage";
-import HomePage2 from "./components/HomePage2";
+import SPGF from "./components/SPGF";
+import SPL from "./components/SPL";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 
 const App = () => {
   return (
     <div>
       <Router>
+        <Navbar />
         <Routes>
-          {/* <Route path="/" element={<HomePage />} /> */}
-          <Route path="/" element={<HomePage2 />} />
+          <Route path="/" element={<SPGF />} />
+          <Route path="/spl" element={<SPL />} />
         </Routes>
+        <Footer />
       </Router>
     </div>
     

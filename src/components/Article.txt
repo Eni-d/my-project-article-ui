@@ -1,2 +1,182 @@
 https://www.kaggle.com/code/hnatyukmu/solar-power-generation-forecast-with-99-auc/input
 
+
+
+
+
+#ARTICLE CODE
+#Dataset link: https://www.kaggle.com/code/hnatyukmu/solar-power-generation-forecast-with-99-auc/input
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+
+# Load the dataset
+df = pd.read_csv("/content/DataSetF.csv", delimiter=';')  # Ensure correct delimiter
+
+# Convert relevant columns to numeric
+df["ENERGY"] = pd.to_numeric(df["ENERGY"], errors='coerce')
+df["CLOUDY"] = pd.to_numeric(df["CLOUDY"], errors='coerce')
+df["SOLAR_RADIATION"] = pd.to_numeric(df["SOLAR_RADIATION"], errors='coerce')
+
+# Define features (X) and target variable (y)
+X = df[["SOLAR_RADIATION"]]
+y = df["ENERGY"]
+
+# Split data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Scale the features using StandardScaler
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Create and train the linear regression model
+model = LinearRegression()
+model.fit(X_train_scaled, y_train)
+
+# Predict on test data
+y_pred = model.predict(X_test_scaled)
+
+# Evaluate the model
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
+
+# Print model performance
+print(f"Mean Absolute Error (MAE): {mae}")
+print(f"Mean Squared Error (MSE): {mse}")
+print(f"Root Mean Squared Error (RMSE): {rmse}")
+print(f"R-squared (R²): {r2}")
+
+
+#Predict with weather data
+# prompt: generate code that connects with open weather API using python
+
+import requests
+
+#Open Weather API key 70b5d279fca69840e6e8ad414ba87f03
+
+def get_weather(api_key, city):
+  base_url = "http://api.openweathermap.org/data/2.5/weather?"
+  complete_url = f"{base_url}appid={api_key}&q={city}"
+  response = requests.get(complete_url)
+  if response.status_code == 200:
+    return response.json()
+  else:
+    print(f"Error: {response.status_code}")
+    return None
+
+weather = get_weather('70b5d279fca69840e6e8ad414ba87f03','Benin')
+solar_irradiance = np.array(100 *(1 - ((weather["clouds"]["all"]) / 100) ))
+#print(solar_irradiance)
+print(model.predict(solar_irradiance.reshape(1, -1)))
+
+
+
+
+
+
+
+
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+# Load the dataset
+df = pd.read_csv("/content/DataSetF.csv", delimiter=";", engine="python")
+
+# Handling missing values
+df.dropna(inplace=True)
+
+# Convert date column if it exists
+if "DATE" in df.columns:
+    df["DATE"] = pd.to_datetime(df["DATE"], errors="coerce")
+
+# Assume a degradation rate of 0.7% per year and an initial panel efficiency of 100%
+def estimate_lifespan(degradation_rate=0.007, threshold=70):
+    years = 0
+    efficiency = 100
+    while efficiency > threshold:
+        efficiency -= efficiency * degradation_rate
+        years += 1
+    return years
+
+# Create an estimated lifespan column
+df["Lifespan"] = estimate_lifespan()
+
+# Use only "SOLAR_RADIATION" as the predictor
+if "SOLAR_RADIATION" not in df.columns:
+    raise ValueError("Column 'SOLAR_RADIATION' not found in dataset.")
+
+X = df[["SOLAR_RADIATION"]]  # Select only solar radiation as input
+y = df["Lifespan"]           # Target variable
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Scale the feature using StandardScaler
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Train the Decision Tree model
+model = DecisionTreeRegressor(random_state=42)
+model.fit(X_train_scaled, y_train)
+
+# Predict on test data
+y_pred = model.predict(X_test_scaled)
+
+# Evaluate the model
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
+
+# Print model performance
+print(f"🔆 Model Performance using Only Solar Radiation:")
+print(f"Mean Absolute Error (MAE): {mae}")
+print(f"Mean Squared Error (MSE): {mse}")
+print(f"Root Mean Squared Error (RMSE): {rmse}")
+print(f"R-squared (R²): {r2}")
+
+# Predict lifespan based on a given solar radiation value
+sample_solar_radiation = np.array([[df["SOLAR_RADIATION"].mean()]])  # Use mean solar radiation value
+sample_solar_radiation_scaled = scaler.transform(sample_solar_radiation)  # Scale input
+predicted_lifespan = model.predict(sample_solar_radiation_scaled)[0]
+
+# Print the expected lifespan based on solar radiation
+print(f"\n☀️ Predicted Solar Panel Lifespan (Based on Solar Radiation Only): **{predicted_lifespan:.2f} years**")
+
+
+#Predict with weather data
+
+import requests
+
+#Open Weather API key 70b5d279fca69840e6e8ad414ba87f03
+
+def get_weather(api_key, city):
+  base_url = "http://api.openweathermap.org/data/2.5/weather?"
+  complete_url = f"{base_url}appid={api_key}&q={city}"
+  response = requests.get(complete_url)
+  if response.status_code == 200:
+    return response.json()
+  else:
+    print(f"Error: {response.status_code}")
+    return None
+
+weather = get_weather('70b5d279fca69840e6e8ad414ba87f03','Benin')
+solar_irradiance = np.array(100 *(1 - ((weather["clouds"]["all"]) / 100) ))
+predicted_lifespan = model.predict(solar_irradiance.reshape(1, -1))
+print(f"Predicted Life span from weather data {predicted_lifespan}")
+
+
+
